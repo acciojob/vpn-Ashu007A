@@ -3,29 +3,27 @@ package com.driver.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GeneratorType;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Country {
+public class Admin {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private CountryName countryName;
+    @Column(unique = true)
+    private String username;
 
-    private String code;
+    private String password;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "service_provider_id")
-    private ServiceProvider serviceProvider;
+    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
+    private List<ServiceProvider> serviceProviders;
 }
