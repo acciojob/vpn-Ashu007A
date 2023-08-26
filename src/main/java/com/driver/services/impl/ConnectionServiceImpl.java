@@ -31,7 +31,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         }
 
         CountryName validatedCountryName = validateCountryName(countryName);
-        Country userCountry = user.getCountry();
+        Country userCountry = user.getOriginalCountry();
 
         if (userCountry.getCountryName() == validatedCountryName) {
             return user; // Already in the requested country
@@ -50,8 +50,8 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         // Update user details
         user.setConnected(true);
-        user.setMaskedIP(updatedMaskedIP(validatedCountryName, user.getId(), suitableServiceProvider.getId()));
-        user.getCountry().setServiceProvider(suitableServiceProvider);
+        user.setMaskedIp(updatedMaskedIP(validatedCountryName, user.getId(), suitableServiceProvider.getId()));
+        user.getOriginalCountry().setServiceProvider(suitableServiceProvider);
         userRepository2.save(user);
 
         return user;
@@ -67,7 +67,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         // Disconnect user
         user.setConnected(false);
-        user.setMaskedIP(null);
+        user.setMaskedIp(null);
         userRepository2.save(user);
 
         return user;
@@ -78,8 +78,8 @@ public class ConnectionServiceImpl implements ConnectionService {
         User sender = userRepository2.findById(senderId).orElseThrow(() -> new Exception("Sender not found"));
         User receiver = userRepository2.findById(receiverId).orElseThrow(() -> new Exception("Receiver not found"));
 
-        CountryName receiverCountryName = receiver.getCountry().getCountryName();
-        ServiceProvider receiverServiceProvider = receiver.getCountry().getServiceProvider();
+        CountryName receiverCountryName = receiver.getOriginalCountry().getCountryName();
+        ServiceProvider receiverServiceProvider = receiver.getOriginalCountry().getServiceProvider();
 
         if (canCommunicate(sender, receiverCountryName, receiverServiceProvider)) {
             return sender; // Already in a suitable state for communication
@@ -92,8 +92,8 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         // Update sender details
         sender.setConnected(true);
-        sender.setMaskedIP(updatedMaskedIP(receiverCountryName, sender.getId(), suitableServiceProvider.getId()));
-        sender.getCountry().setServiceProvider(suitableServiceProvider);
+        sender.setMaskedIp(updatedMaskedIP(receiverCountryName, sender.getId(), suitableServiceProvider.getId()));
+        sender.getOriginalCountry().setServiceProvider(suitableServiceProvider);
         userRepository2.save(sender);
 
         return sender;
@@ -111,7 +111,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         List<ServiceProvider> suitableProviders = new ArrayList<>();
         for (ServiceProvider serviceProvider : user.getServiceProviderList()) {
             for (User serviceProviderUser : serviceProvider.getUsers()) {
-                if (serviceProviderUser.getCountry().getCountryName() == countryName) {
+                if (serviceProviderUser.getOriginalCountry().getCountryName() == countryName) {
                     suitableProviders.add(serviceProvider);
                     break;
                 }
@@ -131,8 +131,8 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     private boolean canCommunicate(User sender, CountryName receiverCountryName, ServiceProvider receiverServiceProvider) {
-        CountryName senderCountryName = sender.getCountry().getCountryName();
-        ServiceProvider senderServiceProvider = sender.getCountry().getServiceProvider();
+        CountryName senderCountryName = sender.getOriginalCountry().getCountryName();
+        ServiceProvider senderServiceProvider = sender.getOriginalCountry().getServiceProvider();
 
         return senderCountryName == receiverCountryName ||
                 (sender.getConnected() && senderServiceProvider == receiverServiceProvider);

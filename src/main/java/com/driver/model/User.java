@@ -23,9 +23,9 @@ public class User {
 
     private String password;
 
-    private String originalIP;
+    private String originalIp;
 
-    private String maskedIP;
+    private String maskedIp;
 
     private Boolean connected;
 
@@ -43,5 +43,5 @@ public class User {
 
     @OneToOne
     @JoinColumn(name = "country_id")
-    private Country country;
+    private Country originalCountry;
 }
