@@ -27,7 +27,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         User user = userRepository2.findById(userId).orElseThrow(() -> new Exception("User not found"));
 
         if (user.getConnected()) {
-            throw new Exception("Already connected");
+            return user; // Already connected
         }
 
         CountryName validatedCountryName = validateCountryName(countryName);
@@ -39,7 +39,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         ServiceProvider suitableServiceProvider = findSuitableServiceProvider(user, validatedCountryName);
         if (suitableServiceProvider == null) {
-            throw new Exception("Unable to connect");
+            return null; // Unable to connect
         }
 
         // Establish connection
@@ -103,7 +103,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         User receiver = userRepository2.findById(receiverId).orElse(null);
 
         if (sender == null || receiver == null) {
-            throw new Exception("Users not found");
+            return null; // Users not found
         }
 
         if (receiver.getOriginalCountry().getCountryName() == sender.getOriginalCountry().getCountryName()) {

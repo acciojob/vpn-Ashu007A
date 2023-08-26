@@ -11,6 +11,8 @@ import com.driver.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -52,8 +54,12 @@ public class UserServiceImpl implements UserService {
         ServiceProvider serviceProvider = serviceProviderRepository3.findById(serviceProviderId).orElse(null);
 
         if (user != null && serviceProvider != null) {
-            user.getServiceProviderList().add(serviceProvider);
-            userRepository3.save(user);
+            List<ServiceProvider> serviceProviderList = user.getServiceProviderList();
+            if (!serviceProviderList.contains(serviceProvider)) { // Check if serviceProvider is not already subscribed
+                serviceProviderList.add(serviceProvider);
+                user.setServiceProviderList(serviceProviderList);
+                userRepository3.save(user);
+            }
         }
 
         return user;
