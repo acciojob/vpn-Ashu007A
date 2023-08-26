@@ -62,11 +62,11 @@ public class AdminServiceImpl implements AdminService {
 
         return serviceProviderRepository1.save(serviceProvider);
     }
-    private CountryName validateCountryName(String countryName) throws CountryNotFoundException {
+    private CountryName validateCountryName(String countryName) throws Exception {
         try {
             return CountryName.valueOf(countryName.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            throw new CountryNotFoundException("Country not found: " + countryName);
+            throw new Exception("Country not found: " + countryName);
         }
     }
 }
