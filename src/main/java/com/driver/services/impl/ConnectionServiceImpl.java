@@ -9,9 +9,7 @@ import com.driver.services.ConnectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 
 @Service
 public class ConnectionServiceImpl implements ConnectionService {
@@ -46,11 +44,6 @@ public class ConnectionServiceImpl implements ConnectionService {
             return null; // Unable to connect
         }
 
-        // Check if the user has subscribed to the suitable service provider
-        if (!user.getServiceProviderList().contains(suitableServiceProvider)) {
-            throw new Exception("User not subscribed to the service provider");
-        }
-
         // Find the country object that matches the validated country name from the service provider's country list
         Country targetCountry = suitableServiceProvider.getCountryList().stream()
                 .filter(c -> c.getCountryName() == validatedCountryName)
@@ -65,12 +58,11 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         // Update user details
         user.setConnected(true);
+        // Update the user's masked IP based on the target country name
         user.setMaskedIp(updatedMaskedIP(validatedCountryName, user.getId(), suitableServiceProvider.getId()));
-        user.setOriginalCountry(targetCountry); // Set the user's original country to the target country
+        // Set the user's original country to the target country
+        user.setOriginalCountry(targetCountry);
         userRepository2.save(user);
-
-        // Save the userCountry object to the countryRepository2
-        countryRepository2.save(userCountry);
 
         return user;
     }
@@ -109,8 +101,6 @@ public class ConnectionServiceImpl implements ConnectionService {
         ServiceProvider serviceProvider = findSuitableServiceProvider(sender, CountryName.valueOf(receiver.getOriginalCountry().getCountryName().toString()));
         sender.getServiceProviderList().add(serviceProvider);
         sender.setConnected(true);
-        // Update the sender's masked IP
-        sender.setMaskedIp(updatedMaskedIP(receiver.getOriginalCountry().getCountryName(), sender.getId(), serviceProvider.getId()));
         userRepository2.save(sender);
         return sender;
     }

@@ -27,6 +27,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User register(String username, String password, String countryName) throws Exception{
 
+        if (username == null || password == null || countryName == null) {
+            throw new Exception("Invalid input");
+        }
+
         CountryName validatedCountryName = validateCountryName(countryName);
 
         User user = new User();
@@ -41,19 +45,32 @@ public class UserServiceImpl implements UserService {
         userCountry.setUser(user);
 
         // Generate a unique IP address for the user using InetAddress class
+        // Use the country code as the first part of the IP address
+        // Use a random number generator to generate the other three parts of the IP address
         Random random = new Random();
         int part2 = random.nextInt(256);
         int part3 = random.nextInt(256);
         int part4 = random.nextInt(256);
-        // Convert the country code from a String to a byte using the getBytes method
         byte countryCodeValue = userCountry.getCode().getBytes()[0];
         byte[] ipBytes = new byte[]{countryCodeValue, (byte)part2, (byte)part3, (byte)part4};
         InetAddress originalIp = InetAddress.getByAddress(ipBytes);
+
+        // Check if the originalIp is not null
+        if (originalIp == null) {
+            throw new Exception("Unable to generate IP address");
+        }
+
         user.setOriginalIp(originalIp.getHostAddress());
 
         user.setOriginalCountry(userCountry);
 
         userRepository3.save(user);
+
+        // Check if the user is not null
+        if (user == null) {
+            throw new Exception("Unable to register user");
+        }
+
         return user;
     }
 
