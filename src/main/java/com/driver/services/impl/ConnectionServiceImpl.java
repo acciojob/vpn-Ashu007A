@@ -2,6 +2,7 @@ package com.driver.services.impl;
 
 import com.driver.model.*;
 import com.driver.repository.ConnectionRepository;
+import com.driver.repository.CountryRepository;
 import com.driver.repository.ServiceProviderRepository;
 import com.driver.repository.UserRepository;
 import com.driver.services.ConnectionService;
@@ -20,6 +21,9 @@ public class ConnectionServiceImpl implements ConnectionService {
     ServiceProviderRepository serviceProviderRepository2;
     @Autowired
     ConnectionRepository connectionRepository2;
+
+    @Autowired
+    CountryRepository countryRepository2;
 
     @Override
     public User connect(int userId, String countryName) throws Exception{
@@ -42,6 +46,17 @@ public class ConnectionServiceImpl implements ConnectionService {
             return null; // Unable to connect
         }
 
+        // Check if the user has subscribed to the suitable service provider
+        if (!user.getServiceProviderList().contains(suitableServiceProvider)) {
+            throw new Exception("User not subscribed to the service provider");
+        }
+
+        // Find the country object that matches the validated country name from the service provider's country list
+        Country targetCountry = suitableServiceProvider.getCountryList().stream()
+                .filter(c -> c.getCountryName() == validatedCountryName)
+                .findFirst()
+                .orElseThrow(() -> new Exception("Country not found in the service provider"));
+
         // Establish connection
         Connection connection = new Connection();
         connection.setUser(user);
@@ -51,8 +66,11 @@ public class ConnectionServiceImpl implements ConnectionService {
         // Update user details
         user.setConnected(true);
         user.setMaskedIp(updatedMaskedIP(validatedCountryName, user.getId(), suitableServiceProvider.getId()));
-        userCountry.setServiceProvider(suitableServiceProvider); // Update userCountry instead of user.getOriginalCountry()
+        user.setOriginalCountry(targetCountry); // Set the user's original country to the target country
         userRepository2.save(user);
+
+        // Save the userCountry object to the countryRepository2
+        countryRepository2.save(userCountry);
 
         return user;
     }
@@ -75,30 +93,6 @@ public class ConnectionServiceImpl implements ConnectionService {
     @Override
     public User communicate(int senderId, int receiverId) throws Exception {
 
-//        User sender = userRepository2.findById(senderId).orElseThrow(() -> new Exception("Sender not found"));
-//        User receiver = userRepository2.findById(receiverId).orElseThrow(() -> new Exception("Receiver not found"));
-//
-//        CountryName receiverCountryName = receiver.getOriginalCountry().getCountryName();
-//        ServiceProvider receiverServiceProvider = receiver.getOriginalCountry().getServiceProvider();
-//
-//        if (canCommunicate(sender, receiverCountryName, receiverServiceProvider)) {
-//            return sender; // Already in a suitable state for communication
-//        }
-//
-//        ServiceProvider suitableServiceProvider = findSuitableServiceProvider(sender, receiverCountryName);
-//        if (suitableServiceProvider == null) {
-//            throw new Exception("");
-////            throw new Exception("Cannot establish communication");
-//        }
-//
-//        // Update sender details
-//        sender.setConnected(true);
-//        sender.setMaskedIp(updatedMaskedIP(receiverCountryName, sender.getId(), suitableServiceProvider.getId()));
-//        sender.getOriginalCountry().setServiceProvider(suitableServiceProvider);
-//        userRepository2.save(sender);
-//
-//        return sender;
-
         User sender = userRepository2.findById(senderId).orElse(null);
         User receiver = userRepository2.findById(receiverId).orElse(null);
 
@@ -106,17 +100,19 @@ public class ConnectionServiceImpl implements ConnectionService {
             return null; // Users not found
         }
 
-        if (receiver.getOriginalCountry().getCountryName() == sender.getOriginalCountry().getCountryName()) {
-            // Users are in the same country, they can communicate
-            return sender;
-        } else {
-            // Find a suitable service provider for sender
-            ServiceProvider serviceProvider = findSuitableServiceProvider(sender, CountryName.valueOf(receiver.getOriginalCountry().getCountryName().toString()));
-            sender.getServiceProviderList().add(serviceProvider);
-            sender.setConnected(true);
-            userRepository2.save(sender);
-            return sender;
+        // Check if the sender and receiver can communicate
+        if (!canCommunicate(sender, receiver.getOriginalCountry().getCountryName(), receiver.getOriginalCountry().getServiceProvider())) {
+            throw new Exception("Cannot communicate with the receiver");
         }
+
+        // Find a suitable service provider for sender
+        ServiceProvider serviceProvider = findSuitableServiceProvider(sender, CountryName.valueOf(receiver.getOriginalCountry().getCountryName().toString()));
+        sender.getServiceProviderList().add(serviceProvider);
+        sender.setConnected(true);
+        // Update the sender's masked IP
+        sender.setMaskedIp(updatedMaskedIP(receiver.getOriginalCountry().getCountryName(), sender.getId(), serviceProvider.getId()));
+        userRepository2.save(sender);
+        return sender;
     }
 
     private CountryName validateCountryName(String countryName) throws Exception {
@@ -128,22 +124,12 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     private ServiceProvider findSuitableServiceProvider(User user, CountryName countryName) {
-        List<ServiceProvider> suitableProviders = new ArrayList<>();
-        for (ServiceProvider serviceProvider : user.getServiceProviderList()) {
-            for (User serviceProviderUser : serviceProvider.getUsers()) {
-                if (serviceProviderUser.getOriginalCountry().getCountryName() == countryName) {
-                    suitableProviders.add(serviceProvider);
-                    break;
-                }
-            }
-        }
-
-        if (!suitableProviders.isEmpty()) {
-            suitableProviders.sort(Comparator.comparing(ServiceProvider::getId));
-            return suitableProviders.get(0); // Use the one with the smallest ID
-        }
-
-        return null;
+        return user.getServiceProviderList().stream()
+                .filter(sp -> sp.getUsers().stream()
+                        .anyMatch(u -> u.getOriginalCountry().getCountryName() == countryName))
+                .sorted(Comparator.comparing(ServiceProvider::getId))
+                .findFirst()
+                .orElse(null); // Use the one with the smallest ID or return null if none found
     }
 
     private String updatedMaskedIP(CountryName countryName, int userId, int serviceProviderId) {

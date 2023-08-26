@@ -1,5 +1,6 @@
 package com.driver.services.impl;
 
+import com.driver.exceptions.CountryNotFoundException;
 import com.driver.model.Admin;
 import com.driver.model.Country;
 import com.driver.model.CountryName;
@@ -39,7 +40,7 @@ public class AdminServiceImpl implements AdminService {
             ServiceProvider serviceProvider = new ServiceProvider();
             serviceProvider.setName(providerName);
             serviceProvider.setAdmin(admin);
-//            serviceProviderRepository1.save(serviceProvider);
+            serviceProviderRepository1.save(serviceProvider);
             admin.getServiceProviders().add(serviceProvider);
             adminRepository1.save(admin);
         }
@@ -57,13 +58,15 @@ public class AdminServiceImpl implements AdminService {
         country.setCountryName(validatedCountryName);
         country.setServiceProvider(serviceProvider);
 
+        serviceProvider.getCountryList().add(country);
+
         return serviceProviderRepository1.save(serviceProvider);
     }
-    private CountryName validateCountryName(String countryName) throws Exception {
+    private CountryName validateCountryName(String countryName) throws CountryNotFoundException {
         try {
             return CountryName.valueOf(countryName.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            throw new Exception("Country not found");
+            throw new CountryNotFoundException("Country not found: " + countryName);
         }
     }
 }
