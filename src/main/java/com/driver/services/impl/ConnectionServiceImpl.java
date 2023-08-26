@@ -76,29 +76,48 @@ public class ConnectionServiceImpl implements ConnectionService {
     @Override
     public User communicate(int senderId, int receiverId) throws Exception {
 
-        User sender = userRepository2.findById(senderId).orElseThrow(() -> new Exception("Sender not found"));
-        User receiver = userRepository2.findById(receiverId).orElseThrow(() -> new Exception("Receiver not found"));
+//        User sender = userRepository2.findById(senderId).orElseThrow(() -> new Exception("Sender not found"));
+//        User receiver = userRepository2.findById(receiverId).orElseThrow(() -> new Exception("Receiver not found"));
+//
+//        CountryName receiverCountryName = receiver.getOriginalCountry().getCountryName();
+//        ServiceProvider receiverServiceProvider = receiver.getOriginalCountry().getServiceProvider();
+//
+//        if (canCommunicate(sender, receiverCountryName, receiverServiceProvider)) {
+//            return sender; // Already in a suitable state for communication
+//        }
+//
+//        ServiceProvider suitableServiceProvider = findSuitableServiceProvider(sender, receiverCountryName);
+//        if (suitableServiceProvider == null) {
+//            throw new Exception("");
+////            throw new Exception("Cannot establish communication");
+//        }
+//
+//        // Update sender details
+//        sender.setConnected(true);
+//        sender.setMaskedIp(updatedMaskedIP(receiverCountryName, sender.getId(), suitableServiceProvider.getId()));
+//        sender.getOriginalCountry().setServiceProvider(suitableServiceProvider);
+//        userRepository2.save(sender);
+//
+//        return sender;
 
-        CountryName receiverCountryName = receiver.getOriginalCountry().getCountryName();
-        ServiceProvider receiverServiceProvider = receiver.getOriginalCountry().getServiceProvider();
+        User sender = userRepository2.findById(senderId).orElse(null);
+        User receiver = userRepository2.findById(receiverId).orElse(null);
 
-        if (canCommunicate(sender, receiverCountryName, receiverServiceProvider)) {
-            return sender; // Already in a suitable state for communication
+        if (sender == null || receiver == null) {
+            throw new Exception("Users not found");
         }
 
-        ServiceProvider suitableServiceProvider = findSuitableServiceProvider(sender, receiverCountryName);
-        if (suitableServiceProvider == null) {
-            throw new Exception("");
-//            throw new Exception("Cannot establish communication");
+        if (receiver.getOriginalCountry().getCountryName() == sender.getOriginalCountry().getCountryName()) {
+            // Users are in the same country, they can communicate
+            return sender;
+        } else {
+            // Find a suitable service provider for sender
+            ServiceProvider serviceProvider = findSuitableServiceProvider(sender, CountryName.valueOf(receiver.getOriginalCountry().getCountryName().toString()));
+            sender.getServiceProviderList().add(serviceProvider);
+            sender.setConnected(true);
+            userRepository2.save(sender);
+            return sender;
         }
-
-        // Update sender details
-        sender.setConnected(true);
-        sender.setMaskedIp(updatedMaskedIP(receiverCountryName, sender.getId(), suitableServiceProvider.getId()));
-        sender.getOriginalCountry().setServiceProvider(suitableServiceProvider);
-        userRepository2.save(sender);
-
-        return sender;
     }
 
     private CountryName validateCountryName(String countryName) throws Exception {
