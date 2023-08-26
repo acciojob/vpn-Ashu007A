@@ -36,10 +36,10 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "serviceprovider_id")
     )
-    private List<ServiceProvider> serviceProviders;
+    private List<ServiceProvider> serviceProviderList;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Connection> connection = new ArrayList<>();
+    private List<Connection> connectionList = new ArrayList<>();
 
     @OneToOne
     @JoinColumn(name = "country_id")

@@ -109,7 +109,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     private ServiceProvider findSuitableServiceProvider(User user, CountryName countryName) {
         List<ServiceProvider> suitableProviders = new ArrayList<>();
-        for (ServiceProvider serviceProvider : user.getServiceProviders()) {
+        for (ServiceProvider serviceProvider : user.getServiceProviderList()) {
             for (User serviceProviderUser : serviceProvider.getUsers()) {
                 if (serviceProviderUser.getCountry().getCountryName() == countryName) {
                     suitableProviders.add(serviceProvider);

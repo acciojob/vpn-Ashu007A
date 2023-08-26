@@ -24,12 +24,12 @@ public class ServiceProvider {
     @JoinColumn(name = "admin_id")
     private Admin admin;
 
-    @ManyToMany(mappedBy = "serviceProviders")
+    @ManyToMany(mappedBy = "serviceProviderList")
     private List<User> users;
 
     @OneToMany(mappedBy = "serviceProvider", cascade = CascadeType.ALL)
-    private List<Connection> connections;
+    private List<Connection> connectionList;
 
     @OneToMany(mappedBy = "serviceProvider", cascade = CascadeType.ALL)
-    private List<Country> country;
+    private List<Country> countryList;
 }

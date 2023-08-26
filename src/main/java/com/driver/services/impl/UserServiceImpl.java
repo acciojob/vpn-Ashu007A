@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
         ServiceProvider serviceProvider = serviceProviderRepository3.findById(serviceProviderId).orElse(null);
 
         if (user != null && serviceProvider != null) {
-            user.getServiceProviders().add(serviceProvider);
+            user.getServiceProviderList().add(serviceProvider);
             userRepository3.save(user);
         }
 
