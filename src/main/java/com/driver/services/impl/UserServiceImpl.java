@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(password);
-        user.setOriginalIp(validatedCountryName.toCode() + "." + user.getId());
+        user.setOriginalIP(countryRepository3.findByCountryName(CountryName.valueOf(countryName)).getCode() + "." + user.getId());
         user.setConnected(false);
 
         Country userCountry = new Country();
