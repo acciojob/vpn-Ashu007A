@@ -39,7 +39,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         ServiceProvider suitableServiceProvider = findSuitableServiceProvider(user, validatedCountryName);
         if (suitableServiceProvider == null) {
-            throw new Exception("null");
+            throw new Exception("");
 //            throw new Exception("Unable to connect");
         }
 
@@ -88,7 +88,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         ServiceProvider suitableServiceProvider = findSuitableServiceProvider(sender, receiverCountryName);
         if (suitableServiceProvider == null) {
-            throw new Exception("null");
+            throw new Exception("");
 //            throw new Exception("Cannot establish communication");
         }
 
