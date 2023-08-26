@@ -39,8 +39,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         ServiceProvider suitableServiceProvider = findSuitableServiceProvider(user, validatedCountryName);
         if (suitableServiceProvider == null) {
-            throw new Exception("");
-//            throw new Exception("Unable to connect");
+            throw new Exception("Unable to connect");
         }
 
         // Establish connection
@@ -52,7 +51,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         // Update user details
         user.setConnected(true);
         user.setMaskedIp(updatedMaskedIP(validatedCountryName, user.getId(), suitableServiceProvider.getId()));
-        user.getOriginalCountry().setServiceProvider(suitableServiceProvider);
+        userCountry.setServiceProvider(suitableServiceProvider); // Update userCountry instead of user.getOriginalCountry()
         userRepository2.save(user);
 
         return user;
