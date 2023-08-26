@@ -3,6 +3,7 @@ package com.driver.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 @Entity
 @Table
 @Data
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
@@ -24,7 +26,7 @@ public class User {
     private String password;
 
     private String originalIp;
-    private String originalIP;
+//    private String originalIP;
 
     private String maskedIp;
 
